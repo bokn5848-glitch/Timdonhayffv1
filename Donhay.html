@@ -1,0 +1,243 @@
+!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FF Sensitivity Finder</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#07152f,#102b63,#07152f);
+  color:#fff;min-height:100vh;padding:20px
+}
+.container{max-width:700px;margin:auto}
+h1{text-align:center;margin:8px 0 5px;font-size:30px}
+.sub{text-align:center;color:#b8c9ee;margin-bottom:22px}
+.card{
+  background:rgba(10,24,55,.9);border:1px solid #2e69c9;
+  border-radius:20px;padding:20px;box-shadow:0 10px 35px #0008
+}
+label{display:block;margin:12px 0 7px;font-weight:bold}
+input,select{
+  width:100%;padding:14px;border-radius:12px;border:1px solid #3978d5;
+  background:#091a3a;color:white;font-size:16px;outline:none
+}
+button{
+  width:100%;padding:14px;border:0;border-radius:12px;margin-top:15px;
+  background:linear-gradient(90deg,#1877ff,#8a3ffc);color:#fff;
+  font-size:17px;font-weight:bold;cursor:pointer
+}
+.result{display:none;margin-top:20px}
+.phone{font-size:22px;font-weight:bold;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.item{
+  background:#102b58;border-radius:14px;padding:14px;
+  border:1px solid #285da7
+}
+.item span{display:block;color:#a9c4ef;font-size:13px;margin-bottom:6px}
+.item b{font-size:25px}
+.note{
+  margin-top:14px;padding:12px;border-radius:12px;
+  background:#071a36;color:#bcd2f5;font-size:13px
+}
+.list{margin-top:20px;color:#c5d7f5;font-size:14px;line-height:1.6}
+@media(max-width:500px){.grid{grid-template-columns:1fr 1fr}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎯 TÌM ĐỘ NHẠY CỰC VIP👑</h1>
+  <div class="sub">Chọn dòng điện thoại → hiện bộ độ nhạy đề xuất</div>
+
+  <div class="card">
+    <label for="search">🔎 Tìm điện thoại</label>
+    <input id="search" placeholder="Ví dụ: OPPO A31, Samsung A23...">
+
+    <label for="phone">📱 Chọn dòng điện thoại</label>
+    <select id="phone">
+      <option value="">-- Chọn điện thoại --</option>
+    </select>
+
+    <button onclick="showSensitivity()">🎯 XEM ĐỘ NHẠY + NÚT BẮN</button>
+
+    <div id="result" class="result">
+      <div id="phoneName" class="phone"></div>
+      <div class="grid" id="settings"></div>
+      <div class="note">
+        🔥 Nút bắn được cài riêng theo từng model, không còn dùng một mức 54% cho tất cả máy.<br><br>⚠️ Đây là bộ thông số tham khảo. Độ nhạy phù hợp còn tùy màn hình,
+        DPI, FPS và cách chơi. Bạn có thể chỉnh lại trong game.
+      </div>
+    </div>
+
+    <div class="list">
+      <b>📌 Đã có nhiều model:</b><br>
+      OPPO, Samsung Galaxy, Xiaomi/Redmi, POCO, vivo, realme, iPhone...
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  "OPPO A31": [170,103,140,185,155,200,52,433],
+  "OPPO A53": [175,105,145,190,160,200,54,420],
+  "OPPO A54": [180,110,150,190,160,200,55,430],
+  "OPPO A57": [180,110,145,190,165,200,56,420],
+  "OPPO A78": [185,115,150,195,170,200,58,450],
+  "Samsung Galaxy A12": [175,105,145,190,160,200,53,420],
+  "Samsung Galaxy A23": [180,110,150,195,165,200,55,450],
+  "Samsung Galaxy A24": [185,115,155,195,170,200,56,450],
+  "Samsung Galaxy A34": [190,120,160,200,175,200,58,480],
+  "Samsung Galaxy A54": [190,120,160,200,175,200,60,480],
+  "Redmi 9A": [170,100,140,185,155,200,52,400],
+  "Redmi 10": [175,105,145,190,160,200,54,420],
+  "Redmi Note 10": [180,110,150,195,165,200,55,430],
+  "Redmi Note 11": [185,115,155,195,170,200,57,440],
+  "Redmi Note 12": [190,120,160,200,175,200,59,450],
+  "vivo Y12": [170,100,140,185,155,200,52,400],
+  "vivo Y21": [175,105,145,190,160,200,54,420],
+  "vivo Y35": [185,115,155,195,170,200,57,440],
+  "realme C21": [170,100,140,185,155,200,52,400],
+  "realme C35": [180,110,150,190,165,200,55,430],
+  "realme C55": [185,115,155,195,170,200,57,440],
+  "iPhone 11": [185,115,155,195,170,200,58,450],
+  "iPhone 12": [190,120,160,200,175,200,59,460],
+  "iPhone 13": [195,125,165,200,180,200,60,470],
+  "iPhone 13 Pro": [195,125,165,200,180,200,61,470],
+  "iPhone 14": [195,125,165,200,180,200,61,480],
+  "OPPO A16": [172,104,142,187,157,200,53,410],
+  "OPPO A17": [175,106,145,189,160,200,54,420],
+  "OPPO A38": [178,108,148,192,163,200,55,430],
+  "OPPO A58": [182,112,152,194,166,200,57,440],
+  "OPPO A60": [185,114,155,196,169,200,58,450],
+  "OPPO A74": [180,110,150,192,165,200,56,430],
+  "OPPO A76": [182,112,152,194,167,200,57,440],
+  "OPPO A96": [185,115,155,196,170,200,59,450],
+  "OPPO Reno5": [188,118,158,198,173,200,60,460],
+  "OPPO Reno7": [190,120,160,200,175,200,61,470],
+  "OPPO Reno8": [192,122,162,200,178,200,62,480],
+  "OPPO Reno10": [194,124,165,200,180,200,62,480],
+  "OPPO Reno11": [195,126,168,200,182,200,63,490],
+  "Samsung Galaxy A02": [168,100,138,182,152,200,51,400],
+  "Samsung Galaxy A03": [170,102,140,185,155,200,52,410],
+  "Samsung Galaxy A04": [172,104,142,187,157,200,53,410],
+  "Samsung Galaxy A05": [175,106,145,189,160,200,54,420],
+  "Samsung Galaxy A13": [175,106,145,190,160,200,53,420],
+  "Samsung Galaxy A14": [178,109,148,192,163,200,55,430],
+  "Samsung Galaxy A15": [180,112,150,194,165,200,56,440],
+  "Samsung Galaxy A22": [178,108,148,192,163,200,55,430],
+  "Samsung Galaxy A32": [182,112,152,195,167,200,57,440],
+  "Samsung Galaxy A52": [185,115,155,198,170,200,59,450],
+  "Samsung Galaxy A72": [186,116,157,198,172,200,60,460],
+  "Samsung Galaxy A73": [188,118,158,200,174,200,60,470],
+  "Samsung Galaxy S10": [188,118,158,198,173,200,59,460],
+  "Samsung Galaxy S20": [192,122,162,200,178,200,61,480],
+  "Samsung Galaxy S21": [193,124,164,200,180,200,61,480],
+  "Samsung Galaxy S22": [194,125,165,200,181,200,62,490],
+  "Samsung Galaxy S23": [195,126,168,200,182,200,62,490],
+  "Samsung Galaxy S24": [196,128,170,200,184,200,63,500],
+  "Xiaomi Redmi 9": [170,102,140,185,155,200,52,410],
+  "Redmi 9C": [168,100,138,183,153,200,51,400],
+  "Redmi 10C": [172,104,142,187,157,200,53,410],
+  "Redmi 12C": [174,106,145,189,160,200,54,420],
+  "Redmi 13C": [177,108,148,192,163,200,55,430],
+  "Redmi Note 8": [176,108,146,190,160,200,54,420],
+  "Redmi Note 9": [178,110,149,192,163,200,55,430],
+  "Redmi Note 10 Pro": [185,115,155,197,170,200,58,450],
+  "Redmi Note 11 Pro": [188,118,158,199,174,200,60,460],
+  "Redmi Note 12 Pro": [191,121,162,200,178,200,61,480],
+  "Redmi Note 13": [192,122,164,200,179,200,62,490],
+  "POCO M3": [172,104,142,187,158,200,53,410],
+  "POCO M4 Pro": [180,110,150,194,166,200,56,440],
+  "POCO X3 Pro": [188,118,158,200,175,200,60,470],
+  "POCO X4 Pro": [190,120,160,200,178,200,61,480],
+  "POCO X5 Pro": [193,124,165,200,181,200,62,490],
+  "POCO F3": [191,121,162,200,179,200,61,480],
+  "POCO F5": [195,126,168,200,183,200,63,500],
+  "vivo Y15": [170,102,140,185,155,200,52,410],
+  "vivo Y16": [172,104,142,187,157,200,53,410],
+  "vivo Y17": [174,106,144,189,159,200,54,420],
+  "vivo Y20": [176,108,146,191,162,200,54,420],
+  "vivo Y22": [178,110,149,193,164,200,55,430],
+  "vivo Y27": [182,113,152,195,167,200,57,440],
+  "vivo Y36": [185,116,155,198,170,200,59,450],
+  "vivo V20": [186,117,157,198,172,200,59,460],
+  "vivo V23": [189,120,160,200,175,200,61,470],
+  "vivo V25": [191,122,162,200,178,200,61,480],
+  "vivo V27": [193,124,165,200,180,200,62,490],
+  "realme C11": [168,100,138,182,152,200,51,400],
+  "realme C25": [172,104,142,187,157,200,53,410],
+  "realme C31": [174,106,144,189,159,200,54,420],
+  "realme C33": [176,108,146,191,162,200,54,420],
+  "realme C51": [178,110,149,193,164,200,55,430],
+  "realme C53": [180,112,151,195,166,200,56,440],
+  "realme C67": [184,115,155,197,170,200,58,450],
+  "realme 8": [182,112,152,195,167,200,57,440],
+  "realme 9": [185,115,155,198,170,200,59,450],
+  "realme 10": [188,118,158,200,174,200,60,460],
+  "realme 11": [191,121,162,200,178,200,61,480],
+  "iPhone SE (2020)": [185,115,155,195,170,200,57,430],
+  "iPhone XR": [186,116,156,197,171,200,58,440],
+  "iPhone XS": [187,117,157,198,172,200,58,450],
+  "iPhone XS Max": [188,118,158,198,173,200,59,460],
+  "iPhone 11 Pro": [189,120,160,199,175,200,59,460],
+  "iPhone 11 Pro Max": [190,121,161,200,176,200,60,470],
+  "iPhone 12 mini": [189,120,160,199,175,200,59,460],
+  "iPhone 12 Pro": [191,122,162,200,178,200,60,470],
+  "iPhone 12 Pro Max": [192,123,164,200,179,200,61,480],
+  "iPhone 13 mini": [193,124,165,200,180,200,60,470],
+  "iPhone 13 Pro Max": [196,127,168,200,183,200,62,490],
+  "iPhone 14 Plus": [195,126,167,200,182,200,62,490],
+  "iPhone 14 Pro": [196,128,169,200,184,200,63,500],
+  "iPhone 14 Pro Max": [197,129,170,200,185,200,63,500],
+  "iPhone 15 Plus": [196,128,169,200,184,200,63,500],
+  "iPhone 15 Pro": [197,130,171,200,186,200,64,510],
+  "iPhone 15 Pro Max": [198,131,172,200,187,200,64,510],
+  "iPhone 15": [195,130,170,200,180,200,62,480],
+};
+
+const labels = [
+  "Nhìn xung quanh",
+  "Ống ngắm Hồng Tâm",
+  "Ống ngắm X2",
+  "Ống ngắm X4",
+  "Ống ngắm Súng ngắm",
+  "Camera nhìn xung quanh",
+  "Nút bắn",
+  "DPI đề xuất"
+];
+
+const phoneSelect = document.getElementById("phone");
+const search = document.getElementById("search");
+
+function fill(list){
+  phoneSelect.innerHTML='<option value="">-- Chọn điện thoại --</option>';
+  list.forEach(p=>{
+    const o=document.createElement("option");
+    o.value=p;o.textContent=p;phoneSelect.appendChild(o);
+  });
+}
+fill(Object.keys(data));
+
+search.addEventListener("input",()=>{
+  document.getElementById("result").style.display="none";
+  const q=search.value.toLowerCase().trim();
+  fill(Object.keys(data).filter(p=>p.toLowerCase().includes(q)));
+});
+
+
+function showSensitivity(){
+  const p=phoneSelect.value;
+  const result=document.getElementById("result");
+  if(!p){result.style.display="none";return}
+  document.getElementById("phoneName").textContent="📱 "+p;
+  const values=data[p];
+  document.getElementById("settings").innerHTML=values.map((v,i)=>`
+    <div class="item">
+      <span>${labels[i]}</span><b>${v}</b>
+    </div>`).join("");
+  result.style.display="block";
+}
+</script>
+</body>
+</html>
